@@ -4,7 +4,7 @@ using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace EZMongo
+namespace EZMongo.NET
 {
     public class Client : IDisposable
     {
