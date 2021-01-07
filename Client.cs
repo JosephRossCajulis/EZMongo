@@ -17,11 +17,15 @@ namespace EZMongo.NET
             _database = _client.GetDatabase(db);
         }
 
-        public void Create(string collection, object item)
+        public void Create(string collection, object item, bool removeT = true)
         {
             var coll = _database.GetCollection<BsonDocument>(collection);
             var returnDocument = new BsonDocument(item.ToBsonDocument());
-            returnDocument.Remove("_t");
+            if (removeT)
+            {
+                returnDocument.Remove("_t");
+            }
+
             coll.InsertOne(returnDocument);
         }
 
@@ -65,13 +69,17 @@ namespace EZMongo.NET
             }
         }
 
-        public void Update(string collection, object item, Dictionary<object, object> paramss)
+        public void Update(string collection, object item, Dictionary<object, object> paramss, bool removeT = true)
         {
             if (paramss.Count == 1)
             {
                 var filter = Builders<BsonDocument>.Filter.Eq(paramss.Keys.First().ToString(), paramss.Values.First().ToString());
                 var updatedDoc = item.ToBsonDocument();
-                updatedDoc.Remove("_t");
+                if (removeT)
+                {
+                    updatedDoc.Remove("_t");
+                }
+
                 updatedDoc.Remove("_id");
                 var coll = _database.GetCollection<BsonDocument>(collection);
                 var returnDocument = coll.ReplaceOne(filter, updatedDoc);
@@ -92,7 +100,10 @@ namespace EZMongo.NET
 
                 }
                 var updatedDoc = item.ToBsonDocument();
-                updatedDoc.Remove("_t");
+                if (removeT)
+                {
+                    updatedDoc.Remove("_t");
+                }
                 updatedDoc.Remove("_id");
                 var coll = _database.GetCollection<BsonDocument>(collection);
                 var returnDocument = coll.UpdateOne(filter, updatedDoc);
