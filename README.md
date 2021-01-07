@@ -1,7 +1,7 @@
 # EZMongo.NET
 ## What is EZMongo.NET
 EZMongo is a class library that allows .NET developers to implement MongoDB Create, Read, Update and Delete (CRUD) operations against a single collection. 
-With methods for CRUD operations, just provide information (connection string and name of the collection) when creating a new instance and you are good to go.
+With methods for CRUD operations, just provide information (connection string, database name, and name of the collection) when creating a new instance and you are good to go.
 
 ## How it works?
 EZMongo.NET has 5 methods performing the basic CRUD operations for a single collection and a method for getting the total row count of a single collection.
