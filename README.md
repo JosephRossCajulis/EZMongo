@@ -33,5 +33,8 @@ using (Client client = new Client(connStr, database))
  The connection strings can be either from a local MongoDB installed from a development machine or from a Platform-As-A-Service (PAAS) such as MongoDB Atlas.
  
  ## Limitations
- This code currently supports CRUD operations for one single collection. This currently has no validation checks if the connection string supplied is for a MongoDB connection.
+ This code currently supports CRUD operations for one single collection.
+ 
+  ## What's New
+  v1.1 - Added validation checks if the connection string supplied is for a MongoDB connection.
  
