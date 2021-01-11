@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -13,8 +14,51 @@ namespace EZMongo.NET
 
         public Client(string constring, string db)
         {
-            _client = new MongoClient(constring);
-            _database = _client.GetDatabase(db);
+            try
+            {
+                _client = new MongoClient(constring);
+                _database = _client.GetDatabase(db);
+
+                //pinging of server is included in the check of establishing database connection.
+                var server = _database.RunCommand((Command<BsonDocument>)"{ping:1}");
+            }
+            catch (MongoDB.Driver.MongoConfigurationException mce)//INVALID CONNECTION STRING FORM
+            {
+                /* Parse message from MongoDB.Driver.Core.Configuration.ConnectionString.Parse:
+                 *  if (!match.Success)
+                    {
+                        var protectedConnectionString = ProtectConnectionString(_originalConnectionString);
+                        var message = $"The connection string '{protectedConnectionString}' is not valid.";
+                        throw new MongoConfigurationException(message);
+                    }
+                */
+
+                Regex reg = new Regex("The connection string (.*) is not valid.");
+                Match match = reg.Match(mce.Message);
+                if (match.Success)
+                    throw new MongoDB.Driver.MongoConfigurationException("Connection string is not recognized. " + mce.Message);
+            }
+            catch (MongoDB.Driver.MongoAuthenticationException mae) //INVALID CREDENTIALS
+            {
+                /* Exception message from MongoDB.Driver.Core.Authentication.CreateException
+                 * var message = string.Format("Unable to authenticate using sasl protocol mechanism {0}.", Name);
+                   return new MongoAuthenticationException(connection.ConnectionId, message, ex);
+                 */
+
+                Regex reg = new Regex("Unable to authenticate using sasl protocol mechanism (.*)");
+                Match match = reg.Match(mae.Message);
+                if (match.Success)
+                    throw new Exception("Cannot contact the server. Database credentials supplied maybe invalid. " + mae.Message);
+            }
+            catch (System.ArgumentOutOfRangeException aoe) //NO INTERNET CONNECTION
+            {
+                //scenario is no internet connection (development server not connected to the internet or server connected to network with no internet connection)
+                Regex reg = new Regex("List of configured name servers must not be empty.");
+                Match match = reg.Match(aoe.Message);
+                if (match.Success)
+                    throw new Exception("You may not be connected to the Internet. Please check your Internet connection. " + aoe.Message);
+            }
+
         }
 
         public void Create(string collection, object item, bool removeT = true)
@@ -37,7 +81,7 @@ namespace EZMongo.NET
             return dotNetObj;
         }
 
-        public List<object> Read(string collectionName, Dictionary<object,object> paramss)
+        public List<object> Read(string collectionName, Dictionary<object, object> paramss)
         {
             if (paramss.Count == 1)
             {
